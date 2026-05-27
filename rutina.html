@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Mi Rutina">
+<title>Mi Rutina</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.44.0/tabler-icons.min.css">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+:root {
+  --bg: #f7f6f2; --surface: #ffffff; --text: #1a1a1a; --text-muted: #888; --text-faint: #bbb;
+  --border: rgba(0,0,0,0.08); --green: #1D9E75; --green-light: #E1F5EE;
+  --amber: #BA7517; --amber-light: #FAEEDA; --red-light: #FCEBEB; --red: #E24B4A;
+  --purple: #534AB7; --purple-light: #eeedfe;
+}
+body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; padding-bottom: 40px; }
+
+.top-header { background: var(--surface); padding: 52px 20px 0; border-bottom: 0.5px solid var(--border); position: sticky; top: 0; z-index: 10; }
+.top-header h1 { font-size: 26px; font-weight: 600; letter-spacing: -0.5px; }
+
+.tabs { display: flex; margin-top: 12px; }
+.tab { flex: 1; padding: 10px 0; font-size: 14px; font-family: 'DM Sans', sans-serif; text-align: center; cursor: pointer; color: var(--text-muted); border-bottom: 2px solid transparent; background: none; border-top: none; border-left: none; border-right: none; transition: all 0.15s; }
+.tab.active { color: var(--text); border-bottom: 2px solid var(--text); font-weight: 500; }
+
+.view { display: none; }
+.view.active { display: block; }
+
+/* RUTINA VIEW */
+.progress-wrap { padding: 14px 20px 12px; background: var(--surface); border-bottom: 0.5px solid var(--border); display: flex; align-items: center; gap: 12px; }
+.progress-track { flex: 1; background: #ece9e0; border-radius: 99px; height: 5px; }
+.progress-fill { height: 5px; border-radius: 99px; background: var(--green); transition: width 0.4s cubic-bezier(.4,0,.2,1); }
+.progress-label { font-size: 12px; color: var(--text-muted); white-space: nowrap; }
+.reset-btn { font-family: 'DM Sans', sans-serif; font-size: 12px; color: var(--text-muted); border: 0.5px solid var(--border); border-radius: 20px; padding: 5px 12px; background: transparent; cursor: pointer; white-space: nowrap; }
+
+.section-header { display: flex; align-items: center; gap: 8px; padding: 18px 20px 8px; }
+.section-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+.dot-morning { background: var(--amber); } .dot-midday { background: var(--green); } .dot-night { background: var(--purple); }
+.section-title { font-size: 11px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-muted); }
+
+.items-wrap { background: var(--surface); border-radius: 16px; margin: 0 12px; overflow: hidden; border: 0.5px solid var(--border); }
+.item { display: flex; align-items: center; gap: 12px; padding: 14px 16px; border-bottom: 0.5px solid var(--border); cursor: pointer; transition: background 0.15s; -webkit-user-select: none; user-select: none; }
+.item:last-child { border-bottom: none; }
+.item:active { background: #f7f6f2; }
+.item-time { font-size: 11px; font-weight: 500; color: var(--text-faint); min-width: 36px; }
+.check { width: 26px; height: 26px; border-radius: 50%; border: 1.5px solid #ddd; display: flex; align-items: center; justify-content: center; flex-shrink: 0; transition: all 0.2s cubic-bezier(.4,0,.2,1); }
+.check.done { background: var(--green); border-color: var(--green); }
+.check.done::after { content: ''; display: block; width: 5px; height: 9px; border: 2px solid white; border-top: none; border-left: none; transform: rotate(45deg) translateY(-1px); }
+.item-label { flex: 1; font-size: 15px; color: var(--text); transition: color 0.2s; }
+.item-label.done { color: var(--text-faint); text-decoration: line-through; }
+.item-icon { font-size: 17px; color: var(--text-faint); }
+.all-done { text-align: center; padding: 32px 20px; display: none; }
+.all-done-emoji { font-size: 40px; }
+.all-done-text { font-size: 17px; font-weight: 500; margin-top: 8px; }
+.all-done-sub { font-size: 13px; color: var(--text-muted); margin-top: 4px; }
+
+/* CALENDAR VIEW */
+.cal-wrap { padding: 16px; }
+.cal-nav { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
+.cal-nav button { background: none; border: 0.5px solid var(--border); border-radius: 8px; width: 34px; height: 34px; cursor: pointer; display: flex; align-items: center; justify-content: center; color: var(--text-muted); font-size: 16px; }
+.cal-title { font-size: 16px; font-weight: 500; }
+.day-labels { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; margin-bottom: 6px; }
+.day-label { text-align: center; font-size: 11px; color: var(--text-muted); padding: 2px 0; }
+.cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; }
+.cal-day { aspect-ratio: 1; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 13px; cursor: pointer; transition: all 0.15s; color: var(--text-muted); }
+.cal-day.in-month { color: var(--text); }
+.cal-day.today { font-weight: 600; border: 1.5px solid var(--text); }
+.cal-day.full { background: var(--green-light); color: #085041; }
+.cal-day.partial { background: var(--amber-light); color: #633806; }
+.cal-day.missed { background: var(--red-light); color: #791F1F; }
+.cal-day.future { color: var(--text-faint); cursor: default; }
+.cal-day:not(.future):not(.empty):active { opacity: 0.6; }
+.legend { display: flex; gap: 12px; margin-top: 14px; justify-content: center; flex-wrap: wrap; }
+.legend-item { display: flex; align-items: center; gap: 5px; font-size: 12px; color: var(--text-muted); }
+.legend-dot { width: 10px; height: 10px; border-radius: 50%; }
+.dot-full { background: var(--green); } .dot-partial { background: var(--amber); } .dot-none { background: var(--red); }
+
+.day-detail { margin-top: 14px; background: var(--surface); border: 0.5px solid var(--border); border-radius: 16px; overflow: hidden; }
+.day-detail-header { padding: 10px 14px; border-bottom: 0.5px solid var(--border); font-size: 13px; font-weight: 500; }
+.day-detail-item { display: flex; align-items: center; gap: 10px; padding: 9px 14px; border-bottom: 0.5px solid var(--border); }
+.day-detail-item:last-child { border-bottom: none; }
+.di-time { font-size: 11px; color: var(--text-muted); min-width: 36px; }
+.di-check { width: 18px; height: 18px; border-radius: 50%; flex-shrink: 0; }
+.di-check.done { background: var(--green); display: flex; align-items: center; justify-content: center; }
+.di-check.done::after { content: ''; width: 4px; height: 7px; border: 1.5px solid white; border-top: none; border-left: none; transform: rotate(45deg) translateY(-1px); }
+.di-check.miss { background: var(--red-light); border: 1px solid #F09595; }
+.di-label { font-size: 13px; color: var(--text); flex: 1; }
+.di-label.miss { color: var(--text-faint); }
+.no-data { padding: 20px; text-align: center; font-size: 13px; color: var(--text-muted); }
+
+/* STATS VIEW */
+.stats-wrap { padding: 16px; }
+.stats-grid { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 10px; margin-bottom: 16px; }
+.stat { background: var(--surface); border-radius: 12px; padding: 14px; border: 0.5px solid var(--border); }
+.stat-label { font-size: 12px; color: var(--text-muted); }
+.stat-val { font-size: 24px; font-weight: 500; margin-top: 2px; }
+</style>
+</head>
+<body>
+
+<div class="top-header">
+  <h1 id="header-title">Mi Rutina</h1>
+  <div class="tabs">
+    <button class="tab active" onclick="switchTab('rutina')">Rutina</button>
+    <button class="tab" onclick="switchTab('calendar')">Calendario</button>
+    <button class="tab" onclick="switchTab('stats')">Estadísticas</button>
+  </div>
+</div>
+
+<!-- RUTINA -->
+<div class="view active" id="view-rutina">
+  <div class="progress-wrap">
+    <div class="progress-track"><div class="progress-fill" id="progress-fill" style="width:0%"></div></div>
+    <div class="progress-label" id="progress-label">0 de 16</div>
+    <button class="reset-btn" onclick="resetAll()">Reiniciar</button>
+  </div>
+
+  <div class="section-header"><div class="section-dot dot-morning"></div><span class="section-title">Mañana</span></div>
+  <div class="items-wrap">
+    <div class="item" onclick="toggle(this)"><span class="item-time">6:00</span><div class="check"></div><span class="item-label">Wake up</span><i class="ti ti-sun item-icon"></i></div>
+    <div class="item" onclick="toggle(this)"><span class="item-time">6:30</span><div class="check"></div><span class="item-label">Orar y meditar en Dios</span><i class="ti ti-heart item-icon"></i></div>
+    <div class="item" onclick="toggle(this)"><span class="item-time">7:00</span><div class="check"></div><span class="item-label">Gym</span><i class="ti ti-barbell item-icon"></i></div>
+    <div class="item" onclick="toggle(this)"><span class="item-time">8:30</span><div class="check"></div><span class="item-label">Limpiar la casa</span><i class="ti ti-home item-icon"></i></div>
+    <div class="item" onclick="toggle(this)"><span class="item-time">9:00</span><div class="check"></div><span class="item-label">Desayuno</span><i class="ti ti-coffee item-icon"></i></div>
+    <div class="item" onclick="toggle(this)"><span class="item-time">9:30</span><div class="check"></div><span class="item-label">Inglés</span><i class="ti ti-book item-icon"></i></div>
+  </div>
+
+  <div class="section-header"><div class="section-dot dot-midday"></div><span class="section-title">Mediodía</span></div>
+  <div class="items-wrap">
+    <div class="item" onclick="toggle(this)"><span class="item-time">10:00</span><div class="check"></div><span class="item-label">Break</span><i class="ti ti-coffee item-icon"></i></div>
+    <div class="item" onclick="toggle(this)"><span class="item-time">11:00</span><div class="check"></div><span class="item-label">Trabajo enfocado</span><i class="ti ti-brain item-icon"></i></div>
+    <div class="item" onclick="toggle(this)"><span class="item-time">1:00</span><div class="check"></div><span class="item-label">Break → Almuerzo</span><i class="ti ti-soup item-icon"></i></div>
+    <div class="item" onclick="toggle(this)"><span class="item-time">2:00</span><div class="check"></div><span class="item-label">Trabajo enfocado</span><i class="ti ti-brain item-icon"></i></div>
+    <div class="item" onclick="toggle(this)"><span class="item-time">6:00</span><div class="check"></div><span class="item-label">Subir contenidos</span><i class="ti ti-upload item-icon"></i></div>
+    <div class="item" onclick="toggle(this)"><span class="item-time">6:45</span><div class="check"></div><span class="item-label">Terminar el trabajo</span><i class="ti ti-circle-check item-icon"></i></div>
+    <div class="item" onclick="toggle(this)"><span class="item-time">7:00</span><div class="check"></div><span class="item-label">Jugar, ver videos — dopamina sana</span><i class="ti ti-device-gamepad item-icon"></i></div>
+  </div>
+
+  <div class="section-header"><div class="section-dot dot-night"></div><span class="section-title">Noche</span></div>
+  <div class="items-wrap">
+    <div class="item" onclick="toggle(this)"><span class="item-time">9:00</span><div class="check"></div><span class="item-label">Inglés, llamadas → Cena</span><i class="ti ti-phone item-icon"></i></div>
+    <div class="item" onclick="toggle(this)"><span class="item-time">10:30</span><div class="check"></div><span class="item-label">Meditar y escudriñar la palabra</span><i class="ti ti-moon item-icon"></i></div>
+    <div class="item" onclick="toggle(this)"><span class="item-time">11:00</span><div class="check"></div><span class="item-label">Dormir</span><i class="ti ti-zzz item-icon"></i></div>
+  </div>
+  <div class="all-done" id="all-done"><div class="all-done-emoji">🎉</div><div class="all-done-text">¡Rutina completada!</div><div class="all-done-sub">Excelente día. Descansa bien.</div></div>
+</div>
+
+<!-- CALENDAR -->
+<div class="view" id="view-calendar">
+  <div class="cal-wrap">
+    <div class="cal-nav">
+      <button onclick="changeMonth(-1)"><i class="ti ti-chevron-left"></i></button>
+      <span class="cal-title" id="cal-title"></span>
+      <button onclick="changeMonth(1)"><i class="ti ti-chevron-right"></i></button>
+    </div>
+    <div class="day-labels">
+      <div class="day-label">L</div><div class="day-label">M</div><div class="day-label">X</div>
+      <div class="day-label">J</div><div class="day-label">V</div><div class="day-label">S</div><div class="day-label">D</div>
+    </div>
+    <div class="cal-grid" id="cal-grid"></div>
+    <div class="legend">
+      <div class="legend-item"><div class="legend-dot dot-full"></div>Completo</div>
+      <div class="legend-item"><div class="legend-dot dot-partial"></div>Parcial</div>
+      <div class="legend-item"><div class="legend-dot dot-none"></div>Fallado</div>
+    </div>
+    <div class="day-detail" id="day-detail" style="display:none"></div>
+  </div>
+</div>
+
+<!-- STATS -->
+<div class="view" id="view-stats">
+  <div class="stats-wrap">
+    <div class="stats-grid">
+      <div class="stat"><div class="stat-label">Racha actual</div><div class="stat-val" id="stat-streak">—</div></div>
+      <div class="stat"><div class="stat-label">Mejor racha</div><div class="stat-val" id="stat-best">—</div></div>
+      <div class="stat"><div class="stat-label">Días completos</div><div class="stat-val" id="stat-full">—</div></div>
+      <div class="stat"><div class="stat-label">Tasa de éxito</div><div class="stat-val" id="stat-rate">—</div></div>
+    </div>
+  </div>
+</div>
+
+<script>
+const HABITS = [
+  {t:'6:00',l:'Wake up'},{t:'6:30',l:'Orar y meditar'},{t:'7:00',l:'Gym'},
+  {t:'8:30',l:'Limpiar la casa'},{t:'9:00',l:'Desayuno'},{t:'9:30',l:'Inglés'},
+  {t:'10:00',l:'Break'},{t:'11:00',l:'Trabajo enfocado'},{t:'1:00',l:'Almuerzo'},
+  {t:'2:00',l:'Trabajo enfocado'},{t:'6:00',l:'Subir contenidos'},{t:'6:45',l:'Terminar trabajo'},
+  {t:'7:00',l:'Dopamina sana'},{t:'9:00',l:'Inglés + llamadas'},{t:'10:30',l:'Meditar + palabra'},{t:'11:00',l:'Dormir'}
+];
+const TOTAL = HABITS.length;
+const today = new Date();
+const todayStr = today.toDateString();
+const MONTHS = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+const DNAMES = ['Domingo','Lunes','Martes','Miércoles','Jueves','Viernes','Sábado'];
+let viewYear = today.getFullYear(), viewMonth = today.getMonth();
+
+function dayKey(y,m,d){ return 'rutina_v1_'+new Date(y,m,d).toDateString(); }
+function getDayData(y,m,d){ try{ return JSON.parse(localStorage.getItem(dayKey(y,m,d))||'{}'); }catch(e){ return {}; } }
+function getDayScore(y,m,d){ return Object.values(getDayData(y,m,d)).filter(Boolean).length; }
+
+function updateProgress(){
+  const done = document.querySelectorAll('.check.done').length;
+  const pct = Math.round((done/TOTAL)*100);
+  document.getElementById('progress-fill').style.width = pct+'%';
+  document.getElementById('progress-label').textContent = done+' de '+TOTAL;
+  document.getElementById('all-done').style.display = done===TOTAL ? 'block' : 'none';
+}
+
+function toggle(el){
+  const check = el.querySelector('.check'), label = el.querySelector('.item-label');
+  const isDone = check.classList.toggle('done');
+  label.classList.toggle('done', isDone);
+  const idx = Array.from(document.querySelectorAll('.item')).indexOf(el);
+  const state = getDayData(today.getFullYear(), today.getMonth(), today.getDate());
+  state[idx] = isDone;
+  try{ localStorage.setItem(dayKey(today.getFullYear(),today.getMonth(),today.getDate()), JSON.stringify(state)); }catch(e){}
+  updateProgress();
+}
+
+function resetAll(){
+  document.querySelectorAll('.check').forEach(c=>c.classList.remove('done'));
+  document.querySelectorAll('.item-label').forEach(t=>t.classList.remove('done'));
+  try{ localStorage.removeItem(dayKey(today.getFullYear(),today.getMonth(),today.getDate())); }catch(e){}
+  updateProgress();
+}
+
+function loadTodayState(){
+  const state = getDayData(today.getFullYear(), today.getMonth(), today.getDate());
+  document.querySelectorAll('.item').forEach((el,idx)=>{
+    if(state[idx]){ el.querySelector('.check').classList.add('done'); el.querySelector('.item-label').classList.add('done'); }
+  });
+  updateProgress();
+}
+
+function renderCal(){
+  document.getElementById('cal-title').textContent = MONTHS[viewMonth]+' '+viewYear;
+  const grid = document.getElementById('cal-grid');
+  grid.innerHTML='';
+  let startDow = new Date(viewYear,viewMonth,1).getDay();
+  startDow = startDow===0?6:startDow-1;
+  const daysInMonth = new Date(viewYear,viewMonth+1,0).getDate();
+  for(let i=0;i<startDow;i++){ const e=document.createElement('div'); e.className='cal-day empty'; grid.appendChild(e); }
+  for(let d=1;d<=daysInMonth;d++){
+    const el=document.createElement('div');
+    const dt=new Date(viewYear,viewMonth,d);
+    const isFuture=dt>today, isToday=dt.toDateString()===todayStr;
+    let cls='cal-day in-month';
+    if(isToday) cls+=' today';
+    if(isFuture){ cls+=' future'; }
+    else{ const s=getDayScore(viewYear,viewMonth,d); if(s===TOTAL) cls+=' full'; else if(s>0) cls+=' partial'; else cls+=' missed'; }
+    el.className=cls; el.textContent=d;
+    if(!isFuture) el.onclick=()=>showDayDetail(viewYear,viewMonth,d);
+    grid.appendChild(el);
+  }
+}
+
+function showDayDetail(y,m,d){
+  const detail=document.getElementById('day-detail');
+  const data=getDayData(y,m,d);
+  const score=Object.values(data).filter(Boolean).length;
+  const dt=new Date(y,m,d);
+  let html=`<div class="day-detail-header">${DNAMES[dt.getDay()]} ${d} de ${MONTHS[m]} — ${score}/${TOTAL}</div>`;
+  if(Object.keys(data).length===0){ html+=`<div class="no-data">Sin datos para este día</div>`; }
+  else{ HABITS.forEach((h,i)=>{ const done=!!data[i]; html+=`<div class="day-detail-item"><span class="di-time">${h.t}</span><div class="di-check ${done?'done':'miss'}"></div><span class="di-label ${done?'':'miss'}">${h.l}</span></div>`; }); }
+  detail.innerHTML=html; detail.style.display='block';
+}
+
+function changeMonth(dir){
+  viewMonth+=dir;
+  if(viewMonth>11){viewMonth=0;viewYear++;} if(viewMonth<0){viewMonth=11;viewYear--;}
+  document.getElementById('day-detail').style.display='none';
+  renderCal();
+}
+
+function renderStats(){
+  let streak=0,best=0,cur=0,fullDays=0,trackedDays=0;
+  for(let i=89;i>=0;i--){
+    const d=new Date(today); d.setDate(d.getDate()-i);
+    const data=getDayData(d.getFullYear(),d.getMonth(),d.getDate());
+    const score=Object.values(data).filter(Boolean).length;
+    if(Object.keys(data).length>0) trackedDays++;
+    if(score===TOTAL){ fullDays++; cur++; best=Math.max(best,cur); }
+    else cur=0;
+  }
+  streak=0;
+  for(let i=0;i<90;i++){
+    const d=new Date(today); d.setDate(d.getDate()-i);
+    const score=getDayScore(d.getFullYear(),d.getMonth(),d.getDate());
+    if(score===TOTAL) streak++; else break;
+  }
+  const rate=trackedDays>0?Math.round((fullDays/trackedDays)*100):0;
+  document.getElementById('stat-streak').textContent=streak+' días';
+  document.getElementById('stat-best').textContent=best+' días';
+  document.getElementById('stat-full').textContent=fullDays;
+  document.getElementById('stat-rate').textContent=rate+'%';
+}
+
+function switchTab(t){
+  ['rutina','calendar','stats'].forEach(v=>{
+    document.getElementById('view-'+v).classList.toggle('active',v===t);
+  });
+  document.querySelectorAll('.tab').forEach((el,i)=>{
+    el.classList.toggle('active',['rutina','calendar','stats'][i]===t);
+  });
+  if(t==='calendar') renderCal();
+  if(t==='stats') renderStats();
+}
+
+const days2=['Domingo','Lunes','Martes','Miércoles','Jueves','Viernes','Sábado'];
+const months2=['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
+const now2=new Date();
+document.querySelector('h1').textContent='Mi Rutina';
+
+loadTodayState();
+renderCal();
+</script>
+</body>
+</html>
